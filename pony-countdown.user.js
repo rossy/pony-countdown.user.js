@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Pony Countdown
 // @namespace   org.4chan.anonymous
-// @version     0.1.0
+// @version     0.1.1
 // @description Counts time till new pone
 // @downloadURL https://github.com/rossy/pony-countdown.user.js/raw/master/pony-countdown.user.js
 // @match       *://boards.4chan.org/mlp/*
