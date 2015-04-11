@@ -5,12 +5,15 @@
 // @description Counts time till new pone
 // @match       *://boards.4chan.org/mlp/*
 // @match       *://mlpg.co/*
-// @match       http://mlpg.co/countdown/src/data.json
 // @grant       GM_xmlhttpRequest
 // ==/UserScript==
 
 (function() {
 	"use strict";
+
+	// Don't duplicate the countdown on the actual countdown page
+	if (document.location.href === "http://mlpg.co/countdown/")
+		return;
 
 	var css =
 		"#-pony-countdown-content {\n" +
