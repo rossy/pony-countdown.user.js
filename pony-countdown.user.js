@@ -13,7 +13,7 @@
 	"use strict";
 
 	// Don't duplicate the countdown on the actual countdown page
-	if (document.location.href === "http://mlpg.co/countdown/")
+	if (/^http:\/\/mlpg.co\/countdown\//.test(document.location.href))
 		return;
 
 	var css =
