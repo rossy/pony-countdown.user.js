@@ -60,14 +60,18 @@
 
 	function getNext(data, now) {
 		for (var i = 0; i < data.number_of_episodes; i++) {
+			// Grab the name and filter episodes yet to be announced
 			var name = data["ep" + i];
 			if (name === "TBA")
 				continue;
 
+			// Grab the date and filter episodes that have already finished
+			// airing, assuming they finish 30 minutes after they start
 			var start = +new Date(data["ep" + i + "_release"]);
 			if (isNaN(start) || start + 30 * 60 * 1000 < now)
 				continue;
 
+			// Return the first episode that's currently airing or about to air
 			return {
 				name: name,
 				start: start,
@@ -79,33 +83,44 @@
 
 	function formatTimeDifference(diff) {
 		return [
+			// The time till airing is reported as the sum of at most two of
+			// these intervals
 			{ name: "day"   , length: 24 * 60 * 60 * 1000 },
 			{ name: "hour"  , length:      60 * 60 * 1000 },
 			{ name: "minute", length:           60 * 1000 },
 		].filter(function(interval) {
+			// Calculate the amount of time for this interval
 			interval.count = Math.floor(diff / interval.length);
 			diff = diff % interval.length;
 
+			// Filter intervals where the amount is zero
 			return interval.count;
+
+			// Use only the largest two intervals in the message
 		}).slice(0, 2).map(function(interval) {
+			// Use words for amounts under 10
 			var number = [ , "one", "two", "three", "four", "five", "six",
 				"seven", "eight", "nine" ][interval.count] || interval.count;
 
-			return number + " " + interval.name + (interval.count == 1 ? "" : "s");
-		}).join(" and ") || "a few seconds";
+			// Pluralise the interval name
+			var name = interval.name + (interval.count === 1 ? "" : "s");
+			return number + " " + name;
+
+			// If no intervals match, the episode airs in less than a minute
+		}).join(" and ") || "less than a minute";
+	}
+
+	function createElements() {
+		var style = document.createElement("style");
+		style.textContent = css;
+		document.head.appendChild(style);
+
+		contentElem = document.createElement("div");
+		contentElem.setAttribute("id", "-pony-countdown-content");
+		document.body.appendChild(contentElem);
 	}
 
 	function updateMessage() {
-		if (!contentElem) {
-			var style = document.createElement("style");
-			style.textContent = css;
-			document.head.appendChild(style);
-
-			contentElem = document.createElement("div");
-			contentElem.setAttribute("id", "-pony-countdown-content");
-			document.body.appendChild(contentElem);
-		}
-
 		var message = "No new episodes",
 		    now = Date.now(),
 		    next = getNext(lastData, now);
@@ -114,13 +129,18 @@
 			if (next.start <= now)
 				message = "“" + next.name + "” is airing";
 			else
-				message = "“" + next.name + "” airs in " + formatTimeDifference(next.start - now);
+				message = "“" + next.name + "” airs in " +
+				          formatTimeDifference(next.start - now);
 		}
 
+		if (!contentElem)
+			createElements();
 		contentElem.textContent = message;
 	}
 
 	function fetchData(cb) {
+		// Data comes from mlpg.co's Ponk Clock: http://mlpg.co/countdown/
+		// Huge thanks to those guys for letting me use it in this script.
 		GM_xmlhttpRequest({
 			method: "GET",
 			url: "http://mlpg.co/countdown/src/data.json",
@@ -131,6 +151,7 @@
 	}
 
 	function updateData(cb) {
+		// Fetch the countdown JSON and update the message
 		fetchData(function(data) {
 			lastData = data;
 			updateMessage();
@@ -138,8 +159,12 @@
 		});
 	}
 
+	// Do the first update of the countdown JSON
 	updateData(function() {
+		// After the first update, check for updates every hour
 		setInterval(updateData, 60 * 60 * 1000);
+
+		// Update the countdown itself every 20 seconds
 		setInterval(updateMessage, 20 * 1000);
 	});
 })();
