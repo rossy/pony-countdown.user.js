@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Pony Countdown
 // @namespace   org.4chan.anonymous
-// @version     0.2.0
+// @version     0.2.1
 // @description Counts time till new pone
 // @downloadURL https://github.com/rossy/pony-countdown.user.js/raw/master/pony-countdown.user.js
 // @match       *://boards.4chan.org/mlp/*
@@ -201,7 +201,13 @@
 			method: "GET",
 			url: "http://mlpg.co/countdown/src/data.json",
 			onload: function(response) {
-				cb(JSON.parse(response.responseText));
+				var json = JSON.parse(response.responseText);
+
+				// Data overrides
+				if (json.ep13_release === "Sat June 11 11:30:00 GMT-0400 2015")
+					json.ep13_release = "Sat July 11 11:30:00 GMT-0400 2015";
+
+				cb(json);
 			},
 		});
 	}
