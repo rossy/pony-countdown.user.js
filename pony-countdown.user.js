@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Pony Countdown
 // @namespace   org.4chan.anonymous
-// @version     0.2.1
+// @version     0.2.2
 // @description Counts time till new pone
 // @downloadURL https://github.com/rossy/pony-countdown.user.js/raw/master/pony-countdown.user.js
 // @match       *://boards.4chan.org/mlp/*
@@ -156,10 +156,13 @@
 		}).join(" and ") || "less than a minute";
 	}
 
-	function cyclePony() {
+	function onContentClick() {
+		// Don't switch ponies if the user is just trying to select the text
+		if (window.getSelection && ("" + window.getSelection()).length)
+			return;
+
 		if (++currentPony >= 6)
 			currentPony = 0;
-
 		contentElem.className = "-pony-countdown-pony-" + currentPony;
 		localStorage.setItem("-pony-countdown", currentPony);
 	}
@@ -172,7 +175,7 @@
 		contentElem = document.createElement("div");
 		contentElem.setAttribute("id", "-pony-countdown-content");
 		contentElem.className = "-pony-countdown-pony-" + currentPony;
-		contentElem.addEventListener("click", cyclePony, false);
+		contentElem.addEventListener("click", onContentClick, false);
 		document.body.appendChild(contentElem);
 	}
 
