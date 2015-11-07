@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Pony Countdown
 // @namespace   org.4chan.anonymous
-// @version     0.2.3
+// @version     0.2.4
 // @description Counts time till new pone
 // @downloadURL https://github.com/rossy/pony-countdown.user.js/raw/master/pony-countdown.user.js
 // @match       *://boards.4chan.org/mlp/*
@@ -104,6 +104,30 @@
 	    contentElem = null,
 	    currentPony = 0;
 
+	function parseDate(s) {
+		// The ES2015 standard doesn't specify any date format other than
+		// ISO 8601, and some users were having trouble with the date parsing,
+		// so try parsing the date manually first
+		var m = (""+s).match(
+			/^\s*\w+\s+(Jan|Feb|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|Sep|Oct|Nov|Dec)\s+(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\s+GMT([-+])(\d{2})(\d{2})\s+(\d{4})\s*$/);
+
+		// If parsing manually doesn't work, fall back to the Date constructor
+		if (m === null)
+			return +new Date(s);
+
+		var month = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'March': 2, 'Apr': 3,
+			'April': 3, 'May': 4, 'Jun': 5, 'June': 5, 'Jul': 6, 'July': 6,
+			'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11 }[m[1]];
+		var day = m[2];
+		var hour = m[3];
+		var minute = m[4];
+		var second = m[5];
+		var offset = (m[6] === '-' ? -1 : 1) * (m[7] * 3600000 + m[8] * 60000);
+		var year = m[9];
+
+		return Date.UTC(year, month, day, hour, minute, second) - offset;
+	}
+
 	function getNext(data, now) {
 		for (var i = 0; i < data.number_of_episodes; i++) {
 			// Grab the name and filter episodes yet to be announced
@@ -113,7 +137,7 @@
 
 			// Grab the date and filter episodes that have already finished
 			// airing, assuming they finish 30 minutes after they start
-			var start = +new Date(data["ep" + i + "_release"]);
+			var start = parseDate(data["ep" + i + "_release"]);
 			if (isNaN(start) || start + 30 * 60 * 1000 < now)
 				continue;
 
